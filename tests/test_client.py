@@ -44,6 +44,43 @@ def test_client_resolves_openai():
     assert transport.base_url == "https://api.openai.com/v1"
     assert transport.headers["Authorization"] == "Bearer sk-test"
 
+from aiclient.types import UserMessage, SystemMessage
+
+def test_chat_with_message_list():
+    client = Client(openai_api_key="sk-test", transport_factory=lambda **kwargs: MockTransport(**kwargs, response_data={
+        "choices": [{"message": {"content": "Hello User"}}],
+        "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15}
+    }))
+    model = client.chat("gpt-4")
+    
+    messages = [
+        SystemMessage(content="You are a bot"),
+        UserMessage(content="Hi")
+    ]
+    response = model.generate(messages)
+    
+    assert response.text == "Hello User"
+    assert response.usage.total_tokens == 15
+
+from pydantic import BaseModel
+
+class UserInfo(BaseModel):
+    name: str
+    age: int
+
+def test_structured_output():
+    json_resp = '{"name": "Alice", "age": 30}'
+    client = Client(openai_api_key="sk-test", transport_factory=lambda **kwargs: MockTransport(**kwargs, response_data={
+        "choices": [{"message": {"content": json_resp}}],
+    }))
+    model = client.chat("gpt-4")
+    
+    response = model.generate("Who is Alice?", response_model=UserInfo)
+    
+    assert isinstance(response, UserInfo)
+    assert response.name == "Alice"
+    assert response.age == 30
+
 def test_client_resolves_anthropic():
     client = Client(anthropic_api_key="sk-ant", transport_factory=lambda **kwargs: MockTransport(**kwargs, response_data={"content": [{"text": "Hello Claude"}]}))
     model = client.chat("claude-3")

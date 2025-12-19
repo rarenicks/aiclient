@@ -1,5 +1,5 @@
-from typing import Any, Dict, Protocol, Tuple, Optional
-from ..types import ModelResponse, StreamChunk
+from typing import Any, Dict, Protocol, Tuple, Optional, Union, List
+from ..types import ModelResponse, StreamChunk, BaseMessage, UserMessage
 
 class Provider(Protocol):
     """
@@ -17,7 +17,7 @@ class Provider(Protocol):
         """Return the headers for this provider."""
         ...
 
-    def prepare_request(self, model: str, prompt: str) -> Tuple[str, Dict[str, Any]]:
+    def prepare_request(self, model: str, prompt: Union[str, List[BaseMessage]]) -> Tuple[str, Dict[str, Any]]:
         """
         Prepare request data for the provider.
         Returns (endpoint, json_payload).

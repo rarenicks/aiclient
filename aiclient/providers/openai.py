@@ -1,7 +1,6 @@
-import json
-from typing import Any, Dict, Tuple, Optional
+from typing import Any, Dict, Tuple, Optional, Union, List
 from .base import Provider
-from ..types import ModelResponse, StreamChunk, Usage
+from ..types import ModelResponse, StreamChunk, Usage, BaseMessage, UserMessage
 
 class OpenAIProvider(Provider):
     def __init__(self, api_key: str, base_url: str = "https://api.openai.com/v1"):
@@ -19,10 +18,15 @@ class OpenAIProvider(Provider):
             "Content-Type": "application/json",
         }
 
-    def prepare_request(self, model: str, prompt: str) -> Tuple[str, Dict[str, Any]]:
+    def prepare_request(self, model: str, prompt: Union[str, List[BaseMessage]]) -> Tuple[str, Dict[str, Any]]:
+        if isinstance(prompt, str):
+            messages = [{"role": "user", "content": prompt}]
+        else:
+            messages = [msg.model_dump() for msg in prompt]
+            
         return "/chat/completions", {
             "model": model,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": messages,
         }
 
     def parse_response(self, response_data: Dict[str, Any]) -> ModelResponse:

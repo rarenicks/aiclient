@@ -1,7 +1,7 @@
 import json
-from typing import Any, Dict, Tuple, Optional
+from typing import Any, Dict, Tuple, Optional, Union, List
 from .base import Provider
-from ..types import ModelResponse, StreamChunk, Usage
+from ..types import ModelResponse, StreamChunk, Usage, BaseMessage, UserMessage
 
 class AnthropicProvider(Provider):
     def __init__(self, api_key: str, base_url: str = "https://api.anthropic.com/v1"):
@@ -20,12 +20,28 @@ class AnthropicProvider(Provider):
             "Content-Type": "application/json",
         }
 
-    def prepare_request(self, model: str, prompt: str) -> Tuple[str, Dict[str, Any]]:
-        return "/messages", {
+    def prepare_request(self, model: str, prompt: Union[str, List[BaseMessage]]) -> Tuple[str, Dict[str, Any]]:
+        system_prompt = None
+        messages = []
+        
+        if isinstance(prompt, str):
+            messages.append({"role": "user", "content": prompt})
+        else:
+            for msg in prompt:
+                if msg.role == "system":
+                    system_prompt = msg.content
+                else:
+                    messages.append({"role": msg.role, "content": msg.content})
+
+        payload = {
             "model": model,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": messages,
             "max_tokens": 1024,
         }
+        if system_prompt:
+            payload["system"] = system_prompt
+            
+        return "/messages", payload
 
     def parse_response(self, response_data: Dict[str, Any]) -> ModelResponse:
         content = response_data["content"][0]["text"]

@@ -1,7 +1,7 @@
 import json
-from typing import Any, Dict, Tuple, Optional
+from typing import Any, Dict, Tuple, Optional, Union, List
 from .base import Provider
-from ..types import ModelResponse, StreamChunk, Usage
+from ..types import ModelResponse, StreamChunk, Usage, BaseMessage, UserMessage
 
 class GoogleProvider(Provider):
     def __init__(self, api_key: str, base_url: str = "https://generativelanguage.googleapis.com/v1beta"):
@@ -18,14 +18,24 @@ class GoogleProvider(Provider):
             "Content-Type": "application/json",
         }
 
-    def prepare_request(self, model: str, prompt: str) -> Tuple[str, Dict[str, Any]]:
-        # Google API puts key in query param usually, but we want to stick to clean abstract transport.
-        # However, basic HTTP transport can append key to URL if needed in transport layer or here.
-        # For this design, let's assume we pass key as query param in endpoint.
+    def prepare_request(self, model: str, prompt: Union[str, List[BaseMessage]]) -> Tuple[str, Dict[str, Any]]:
+        contents = []
+        if isinstance(prompt, str):
+            contents.append({"role": "user", "parts": [{"text": prompt}]})
+        else:
+            for msg in prompt:
+                role = "model" if msg.role == "assistant" else "user"
+                # Gemini doesn't support 'system' role in `generateContent` messages list easily (uses system_instruction)
+                # For simplicity in v1, we treat system as user or ignore. Let's merge it into user for now or revisit.
+                # Actually, Gemini 1.5 supports system instructions, but let's stick to simple role mapping for now.
+                if msg.role == "system":
+                    # Primitive handling: Prepend system prompt to next user message or just add as user
+                    contents.append({"role": "user", "parts": [{"text": f"System: {msg.content}"}]})
+                else:
+                    contents.append({"role": role, "parts": [{"text": msg.content}]})
+
         endpoint = f"/models/{model}:generateContent?key={self.api_key}"
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}]
-        }
+        payload = {"contents": contents}
         return endpoint, payload
 
     def parse_response(self, response_data: Dict[str, Any]) -> ModelResponse:
