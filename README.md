@@ -1,4 +1,4 @@
-# aiclient
+# aiclient-llm
 
 [![PyPI version](https://badge.fury.io/py/aiclient-llm.svg)](https://badge.fury.io/py/aiclient-llm)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -74,6 +74,19 @@ agent = Agent(
 )
 
 print(agent.run("Weather in SF?"))
+```
+
+### Local LLMs (Ollama) 🏠
+
+Use the `provider:model` syntax to route requests to local models (e.g., via Ollama).
+
+```python
+# Connects to http://localhost:11434/v1 by default
+client.chat("ollama:llama3").generate("Why is the sky blue?")
+
+# Connect to custom URL (e.g. LMStudio)
+client = Client(ollama_base_url="http://localhost:1234/v1")
+client.chat("ollama:mistral").generate("Hi")
 ```
 
 ### Streaming
