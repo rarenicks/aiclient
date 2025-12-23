@@ -22,13 +22,12 @@ class OpenAIProvider(Provider):
             "Content-Type": "application/json",
         }
 
-    def prepare_request(self, model: str, messages: List[BaseMessage], tools: List[Any] = None, stream: bool = False) -> Tuple[str, Dict[str, Any]]:
+    def prepare_request(self, model: str, messages: List[BaseMessage], tools: List[Any] = None, stream: bool = False, response_schema: Optional[Dict[str, Any]] = None, strict: bool = False) -> Tuple[str, Dict[str, Any]]:
         url = f"{self.base_url}/chat/completions"
         # xAI logic is technically redundant if we init with base_url properly, but keeping for safety if invoked directly
         if model.startswith("grok") and "x.ai" not in self.base_url:
              url = "https://api.x.ai/v1/chat/completions"
 
-        formatted_messages = []
         formatted_messages = []
         for msg in messages:
             if isinstance(msg, ToolMessage):
@@ -68,7 +67,6 @@ class OpenAIProvider(Provider):
                         else:
                             media_type, b64 = encode_image(part)
                             image_url_val = f"data:{media_type};base64,{b64}"
-                            image_url_val = f"data:{media_type};base64,{b64}"
                         
                         img_payload = {"url": image_url_val}
                         # xAI does not support 'detail' param apparently? Or strictly follows standard?
@@ -90,6 +88,17 @@ class OpenAIProvider(Provider):
             "messages": formatted_messages,
             "stream": stream,
         }
+
+        # Structured Outputs (Native)
+        if response_schema:
+            data["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": response_schema.get("title", "structured_response"),
+                    "strict": strict,
+                    "schema": response_schema
+                }
+            }
         
         # Tool serialization
         if tools:

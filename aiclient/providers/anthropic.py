@@ -22,7 +22,7 @@ class AnthropicProvider(Provider):
             "Content-Type": "application/json",
         }
 
-    def prepare_request(self, model: str, messages: List[BaseMessage], tools: List[Any] = None, stream: bool = False) -> Tuple[str, Dict[str, Any]]:
+    def prepare_request(self, model: str, messages: List[BaseMessage], tools: List[Any] = None, stream: bool = False, response_schema: Optional[Dict[str, Any]] = None, strict: bool = False) -> Tuple[str, Dict[str, Any]]:
         system_prompt = None
         formatted_messages = []
         
@@ -47,7 +47,14 @@ class AnthropicProvider(Provider):
                 continue
 
             if msg.role == "system":
-                system_prompt = msg.content
+                if msg.cache_control:
+                    system_prompt = [{
+                        "type": "text", 
+                        "text": msg.content, 
+                        "cache_control": {"type": msg.cache_control}
+                    }]
+                else:
+                    system_prompt = msg.content
             elif msg.role == "assistant" and getattr(msg, "tool_calls", None):
                  # Assistant with tool use
                  content_parts = []
@@ -65,27 +72,41 @@ class AnthropicProvider(Provider):
                  formatted_messages.append({"role": "assistant", "content": content_parts})
             else:
                 if isinstance(msg.content, str):
-                    formatted_messages.append({"role": msg.role, "content": msg.content})
+                    content_block = {"type": "text", "text": msg.content}
+                    if msg.cache_control:
+                        content_block["cache_control"] = {"type": msg.cache_control}
+                    formatted_messages.append({"role": msg.role, "content": [content_block]})
                 elif isinstance(msg.content, list):
                     content_parts = []
-                    for part in msg.content:
+                    for i, part in enumerate(msg.content):
                         if isinstance(part, str):
-                            content_parts.append({"type": "text", "text": part})
+                            block = {"type": "text", "text": part}
                         elif isinstance(part, Text):
-                             content_parts.append({"type": "text", "text": part.text})
+                             block = {"type": "text", "text": part.text}
                         elif isinstance(part, Image):
                             media_type, b64 = encode_image(part)
                             if not b64:
                                 raise ValueError("Anthropic requires base64/path image.")
                             
-                            content_parts.append({
+                            block = {
                                 "type": "image",
                                 "source": {
                                     "type": "base64",
                                     "media_type": media_type,
                                     "data": b64
                                 }
-                            })
+                            }
+                        
+                        # Apply cache_control to the LAST block if set on message level?
+                        # Or should we support per-block caching in types? 
+                        # For now, let's apply to the LAST block if msg.cache_control is set, 
+                        # as Anthropic usually caches up to a point.
+                        # However, for fine-grained control, we might need it on Text/Image types later.
+                        # V0.4 MVP: Apply to last block of the message.
+                        if msg.cache_control and i == len(msg.content) - 1:
+                            block["cache_control"] = {"type": msg.cache_control}
+
+                        content_parts.append(block)
                     formatted_messages.append({"role": msg.role, "content": content_parts})
         
         # Flush remaining tool results
@@ -140,6 +161,8 @@ class AnthropicProvider(Provider):
             input_tokens=usage_data.get("input_tokens", 0),
             output_tokens=usage_data.get("output_tokens", 0),
             total_tokens=usage_data.get("input_tokens", 0) + usage_data.get("output_tokens", 0),
+            cache_creation_input_tokens=usage_data.get("cache_creation_input_tokens", 0),
+            cache_read_input_tokens=usage_data.get("cache_read_input_tokens", 0)
         )
         return ModelResponse(
             text=text_content, 

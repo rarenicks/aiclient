@@ -13,6 +13,7 @@ class Image(BaseModel):
 class BaseMessage(BaseModel):
     role: str
     content: Union[str, List[Union[str, Text, Image]]]
+    cache_control: Optional[Literal["ephemeral"]] = None
 
 class SystemMessage(BaseMessage):
     role: Literal["system"] = "system"
@@ -39,6 +40,8 @@ class Usage(BaseModel):
     input_tokens: int = 0
     output_tokens: int = 0
     total_tokens: int = 0
+    cache_creation_input_tokens: Optional[int] = 0
+    cache_read_input_tokens: Optional[int] = 0
 
 class ModelResponse(Protocol):
     @property

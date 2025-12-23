@@ -16,6 +16,12 @@ class Middleware(Protocol):
         """
         ...
 
+    def on_error(self, error: Exception, model: str) -> None:
+        """
+        Hook called when an error occurs during generation.
+        """
+        ...
+
 class CostTrackingMiddleware:
     """
     Middleware to track total usage/cost across requests.
@@ -71,6 +77,9 @@ class CostTrackingMiddleware:
                 self.total_cost_usd += cost
 
         return response
+
+    def on_error(self, error: Exception, model: str) -> None:
+        pass
 
     def _find_model_key(self, model_name: str) -> Union[str, None]:
         if not model_name:

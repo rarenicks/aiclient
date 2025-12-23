@@ -7,6 +7,8 @@
 
 Supports **OpenAI**, **Anthropic** (Claude 3), **Google** (Gemini), and **xAI** (Grok) with a single, consistent interface.
 
+
+
 ## Documentation
 
 - [**Getting Started**](docs/getting_started.md): Installation, Configuration, Basic Usage.
@@ -17,7 +19,10 @@ Supports **OpenAI**, **Anthropic** (Claude 3), **Google** (Gemini), and **xAI** 
 
 - 🦄 **Unified Interface**: Swap between OpenAI, Anthropic, Google, xAI, and Ollama seamlessly.
 - ⚡ **Async & Sync**: Native asyncio support for high-performance apps.
-- 🛡️ **Resilient**: Automatic retries with exponential backoff.
+- 🚀 **Prompt Caching**: Native support for Anthropic Prompt Caching headers (v0.4).
+- 🏗️ **Structured Outputs**: Native strict JSON Schema support for OpenAI (v0.4).
+- 🛡️ **Resilient**: Circuit Breakers, Rate Limiters, and automatic retries (v0.4).
+- 🔭 **Observability**: Tracing and OpenTelemetry hooks (v0.4).
 - 🤖 **Agent Primitives**: Built-in ReAct loop for tool-using agents.
 - 📊 **Middleware**: Inspect requests, track costs, or log data.
 

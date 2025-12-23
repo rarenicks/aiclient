@@ -17,7 +17,7 @@ class Provider(Protocol):
         """Return the headers for this provider."""
         ...
 
-    def prepare_request(self, model: str, messages: List[BaseMessage], tools: List[Any] = None, stream: bool = False) -> Tuple[str, Dict[str, Any]]:
+    def prepare_request(self, model: str, messages: List[BaseMessage], tools: List[Any] = None, stream: bool = False, response_schema: Optional[Dict[str, Any]] = None, strict: bool = False) -> Tuple[str, Dict[str, Any]]:
         """
         Prepare the endpoint and JSON payload for the request.
         Returns (endpoint, json_payload).

@@ -68,3 +68,52 @@ class PIIFilterMiddleware:
     def after_response(self, response):
         return response
 ```
+```
+
+## Resilience Middleware 🛡️
+
+Protect your application from downstream failures.
+
+### CircuitBreaker
+Stops sending requests to a failing provider for a set time prevent cascading failures.
+
+```python
+from aiclient import CircuitBreaker
+
+client.add_middleware(CircuitBreaker(
+    failure_threshold=5,
+    recovery_timeout=60.0  # seconds
+))
+```
+
+### RateLimiter
+Limits the number of requests per minute (RPM).
+
+```python
+from aiclient import RateLimiter
+
+# Limit to 60 requests per minute
+client.add_middleware(RateLimiter(requests_per_minute=60))
+```
+
+## Observability Middleware 🔭
+
+### TracingMiddleware
+Logs request lifecycles (start, end, error) with a trace ID.
+
+```python
+from aiclient import TracingMiddleware
+import logging
+
+logging.basicConfig(level=logging.INFO)
+client.add_middleware(TracingMiddleware())
+```
+
+### OpenTelemetryMiddleware
+Integrates with OpenTelemetry for distributed tracing (Datadog, Honeycomb, Jaeger).
+
+```python
+from aiclient import OpenTelemetryMiddleware
+
+client.add_middleware(OpenTelemetryMiddleware(service_name="my-ai-service"))
+```

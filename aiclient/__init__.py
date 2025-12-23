@@ -7,6 +7,10 @@ from .types import (
     Text, Image, ModelResponse, StreamChunk, Usage
 )
 
+from .middleware import Middleware, CostTrackingMiddleware
+from .resilience import CircuitBreaker, RateLimiter
+from .observability import TracingMiddleware, OpenTelemetryMiddleware
+
 __all__ = [
     "Client",
     "Agent",
@@ -19,5 +23,11 @@ __all__ = [
     "Image",
     "ModelResponse",
     "StreamChunk",
-    "Usage"
+    "Usage",
+    "Middleware",
+    "CostTrackingMiddleware",
+    "CircuitBreaker",
+    "RateLimiter",
+    "TracingMiddleware",
+    "OpenTelemetryMiddleware",
 ]

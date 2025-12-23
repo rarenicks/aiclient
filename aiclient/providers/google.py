@@ -21,7 +21,7 @@ class GoogleProvider(Provider):
             "Content-Type": "application/json",
         }
 
-    def prepare_request(self, model: str, messages: List[BaseMessage], tools: List[Any] = None, stream: bool = False) -> Tuple[str, Dict[str, Any]]:
+    def prepare_request(self, model: str, messages: List[BaseMessage], tools: List[Any] = None, stream: bool = False, response_schema: Optional[Dict[str, Any]] = None, strict: bool = False) -> Tuple[str, Dict[str, Any]]:
         self._buffer = ""
         contents = []
         contents = []
