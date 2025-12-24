@@ -28,7 +28,6 @@ jobs:
         pip install build
 
     - name: Build package 📦
-      working-directory: ./aiclient
       run: python -m build
 
     - name: Publish to TestPyPI 🧪
