@@ -34,6 +34,6 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         repository-url: https://test.pypi.org/legacy/
-        packages_dir: aiclient/dist/
+        packages-dir: dist/
         password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        skip_existing: true
+        skip-existing: true
