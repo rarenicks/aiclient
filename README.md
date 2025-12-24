@@ -13,13 +13,13 @@ Supports **OpenAI**, **Anthropic** (Claude 3), **Google** (Gemini), and **xAI** 
 
 ## Documentation
 
-- [**Getting Started**](docs/getting_started.md): Installation, Configuration, Basic Usage.
-- [**Features Guide**](docs/features.md): Agents, Multimodal, Local LLMs (Ollama), Structured Output.
-- [**Middleware**](docs/middleware.md): Cost tracking, logging, resilience, and custom middleware.
-- [**Memory**](docs/memory.md): Conversation history management and persistence.
-- [**Testing**](docs/testing.md): Mock providers and testing utilities.
-- [**Error Handling**](docs/errors.md): Exception types and debugging.
-- [**Examples**](examples/): Runnable demo scripts for new features.
+- [**Getting Started**](https://github.com/rarenicks/aiclient/blob/main/docs/getting_started.md): Installation, Configuration, Basic Usage.
+- [**Features Guide**](https://github.com/rarenicks/aiclient/blob/main/docs/features.md): Agents, Multimodal, Local LLMs (Ollama), Structured Output.
+- [**Middleware**](https://github.com/rarenicks/aiclient/blob/main/docs/middleware.md): Cost tracking, logging, resilience, and custom middleware.
+- [**Memory**](https://github.com/rarenicks/aiclient/blob/main/docs/memory.md): Conversation history management and persistence.
+- [**Testing**](https://github.com/rarenicks/aiclient/blob/main/docs/testing.md): Mock providers and testing utilities.
+- [**Error Handling**](https://github.com/rarenicks/aiclient/blob/main/docs/errors.md): Exception types and debugging.
+- [**Examples**](https://github.com/rarenicks/aiclient/blob/main/examples/): Runnable demo scripts for new features.
 
 ## Key Features
 
