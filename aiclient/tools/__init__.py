@@ -1,1 +1,1 @@
-from .base import Tool
+from .base import Tool as Tool

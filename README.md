@@ -54,8 +54,8 @@ pip install aiclient-llm
 from aiclient import Client
 
 client = Client(
-    api_key_openai="sk-...", 
-    api_key_anthropic="sk-ant-..."
+    openai_api_key="sk-...",
+    anthropic_api_key="sk-ant-..."
 )
 
 # Call OpenAI

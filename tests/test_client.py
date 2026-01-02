@@ -1,13 +1,15 @@
 """
 Tests for Client provider routing and configuration.
 """
+
 import pytest
+
 from aiclient import Client
-from aiclient.providers.openai import OpenAIProvider
+from aiclient.middleware import CostTrackingMiddleware
 from aiclient.providers.anthropic import AnthropicProvider
 from aiclient.providers.google import GoogleProvider
 from aiclient.providers.ollama import OllamaProvider
-from aiclient.middleware import CostTrackingMiddleware
+from aiclient.providers.openai import OpenAIProvider
 
 
 def test_client_resolves_openai_by_prefix():
@@ -17,6 +19,15 @@ def test_client_resolves_openai_by_prefix():
 
     assert isinstance(model.provider, OpenAIProvider)
     assert model.model_name == "gpt-4o"
+
+
+def test_client_resolves_o3_by_prefix():
+    """Test client routes o3-* models to OpenAI."""
+    client = Client(openai_api_key="sk-test")
+    model = client.chat("o3-mini")
+
+    assert isinstance(model.provider, OpenAIProvider)
+    assert model.model_name == "o3-mini"
 
 
 def test_client_resolves_anthropic_by_prefix():
@@ -108,11 +119,7 @@ def test_client_add_middleware():
 
 def test_client_retry_configuration():
     """Test client retry configuration propagates to models."""
-    client = Client(
-        openai_api_key="sk-test",
-        max_retries=5,
-        retry_delay=2.0
-    )
+    client = Client(openai_api_key="sk-test", max_retries=5, retry_delay=2.0)
 
     model = client.chat("gpt-4o")
 
@@ -152,43 +159,41 @@ def test_client_explicit_key_overrides_env():
 
 def test_client_multiple_models():
     """Test client can create multiple models."""
-    client = Client(
-        openai_api_key="sk-test",
-        anthropic_api_key="sk-ant-test"
-    )
+    client = Client(openai_api_key="sk-test", anthropic_api_key="sk-ant-test")
 
     model1 = client.chat("gpt-4o")
-    model2 = client.chat("claude-3-opus")
+    client.chat("claude-3-opus")
 
     assert isinstance(model1.provider, OpenAIProvider)
+
 
 def test_client_mock_streaming():
     """Test client streaming interface with mock provider."""
     from unittest.mock import MagicMock
-    from aiclient.data_types import StreamChunk
-    
+
     # Setup mock
     client = Client(openai_api_key="sk-test")
     model = client.chat("gpt-4o")
-    
+
     # Mock the transport stream method
     mock_transport = MagicMock()
-    # stream returns an iterator of raw chunks wrapped in {"raw": ...} as expected by OpenAIProvider
+    # stream returns an iterator of raw chunks wrapped in {"raw": ...}
+    # as expected by OpenAIProvider
     import json
+
     chunk1 = {"choices": [{"delta": {"content": "Hello"}}]}
     chunk2 = {"choices": [{"delta": {"content": " World"}}]}
-    
+
     # Provider expects: {"raw": "data: <json_string>"}
     mock_transport.stream.return_value = [
         {"raw": f"data: {json.dumps(chunk1)}"},
-        {"raw": f"data: {json.dumps(chunk2)}"}
+        {"raw": f"data: {json.dumps(chunk2)}"},
     ]
     model.transport = mock_transport
 
     # Execute
     chunks = list(model.stream("prompt"))
-    
-    assert len(chunks) == 2
-    assert chunks[0] == "Hello" # stream yield strings, not objects
-    assert chunks[1] == " World"
 
+    assert len(chunks) == 2
+    assert chunks[0] == "Hello"  # stream yield strings, not objects
+    assert chunks[1] == " World"

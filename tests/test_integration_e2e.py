@@ -3,12 +3,15 @@ End-to-end integration tests with real API calls.
 These tests require API keys in .env file.
 Skip if keys are not available.
 """
-import pytest
+
 import os
+
+import pytest
 from dotenv import load_dotenv
+from pydantic import BaseModel
+
 from aiclient import Client
 from aiclient.data_types import SystemMessage, UserMessage
-from pydantic import BaseModel
 
 # Load environment variables
 load_dotenv()
@@ -19,11 +22,14 @@ HAS_ANTHROPIC = bool(os.getenv("ANTHROPIC_API_KEY"))
 HAS_GOOGLE = bool(os.getenv("GEMINI_API_KEY"))
 HAS_XAI = bool(os.getenv("XAI_API_KEY"))
 
+
 @pytest.mark.skipif(not HAS_OPENAI, reason="OPENAI_API_KEY not set")
 def test_openai_basic_generation():
     """Test basic OpenAI generation with real API."""
     client = Client()
-    response = client.chat("gpt-4o-mini").generate("Say 'test passed' and nothing else.")
+    response = client.chat("gpt-4o-mini").generate(
+        "Say 'test passed' and nothing else."
+    )
 
     assert response.text
     assert len(response.text) > 0
@@ -32,11 +38,14 @@ def test_openai_basic_generation():
     assert response.provider == "openai"
     print(f"✅ OpenAI test passed: {response.text}")
 
+
 @pytest.mark.skipif(not HAS_ANTHROPIC, reason="ANTHROPIC_API_KEY not set")
 def test_anthropic_basic_generation():
     """Test basic Anthropic generation with real API."""
     client = Client()
-    response = client.chat("claude-3-haiku-20240307").generate("Say 'test passed' and nothing else.")
+    response = client.chat("claude-3-haiku-20240307").generate(
+        "Say 'test passed' and nothing else."
+    )
 
     assert response.text
     assert len(response.text) > 0
@@ -44,6 +53,7 @@ def test_anthropic_basic_generation():
     assert response.usage.total_tokens > 0
     assert response.provider == "anthropic"
     print(f"✅ Anthropic test passed: {response.text}")
+
 
 @pytest.mark.skipif(not HAS_ANTHROPIC, reason="ANTHROPIC_API_KEY not set")
 def test_anthropic_prompt_caching_e2e():
@@ -56,7 +66,7 @@ def test_anthropic_prompt_caching_e2e():
 
     messages = [
         SystemMessage(content=system_text, cache_control="ephemeral"),
-        UserMessage(content="Say 'hello'")
+        UserMessage(content="Say 'hello'"),
     ]
 
     # First call - should create cache
@@ -70,11 +80,11 @@ def test_anthropic_prompt_caching_e2e():
     print(f"✅ Cache read tokens: {resp2.usage.cache_read_input_tokens}")
 
     # At least one should have cache activity
-    total_cache_tokens = (
-        (resp1.usage.cache_creation_input_tokens or 0) +
-        (resp2.usage.cache_read_input_tokens or 0)
+    total_cache_tokens = (resp1.usage.cache_creation_input_tokens or 0) + (
+        resp2.usage.cache_read_input_tokens or 0
     )
     assert total_cache_tokens > 0, "Expected cache activity"
+
 
 @pytest.mark.skipif(not HAS_OPENAI, reason="OPENAI_API_KEY not set")
 def test_openai_structured_outputs_e2e():
@@ -88,9 +98,7 @@ def test_openai_structured_outputs_e2e():
 
     # Test with strict=True (native structured outputs)
     response = client.chat("gpt-4o-mini").generate(
-        "Return color='blue' and number=42",
-        response_model=SimpleResponse,
-        strict=True
+        "Return color='blue' and number=42", response_model=SimpleResponse, strict=True
     )
 
     assert isinstance(response, SimpleResponse)
@@ -98,16 +106,20 @@ def test_openai_structured_outputs_e2e():
     assert response.number
     print(f"✅ Structured output: color={response.color}, number={response.number}")
 
+
 @pytest.mark.skipif(not HAS_GOOGLE, reason="GEMINI_API_KEY not set")
 def test_google_basic_generation():
     """Test basic Google Gemini generation with real API."""
     client = Client()
-    response = client.chat("gemini-1.5-flash").generate("Say 'test passed' and nothing else.")
+    response = client.chat("gemini-1.5-flash").generate(
+        "Say 'test passed' and nothing else."
+    )
 
     assert response.text
     assert len(response.text) > 0
     assert response.provider == "google"
     print(f"✅ Google test passed: {response.text}")
+
 
 @pytest.mark.skipif(not HAS_XAI, reason="XAI_API_KEY not set")
 def test_xai_basic_generation():
@@ -118,6 +130,7 @@ def test_xai_basic_generation():
     assert response.text
     assert len(response.text) > 0
     print(f"✅ xAI test passed: {response.text}")
+
 
 # Requires pytest-asyncio
 # @pytest.mark.skipif(not HAS_OPENAI, reason="OPENAI_API_KEY not set")
@@ -131,6 +144,7 @@ def test_xai_basic_generation():
 #     assert response.text
 #     assert len(response.text) > 0
 #     print(f"✅ Async test passed: {response.text}")
+
 
 @pytest.mark.skipif(not HAS_OPENAI, reason="OPENAI_API_KEY not set")
 def test_openai_streaming():
@@ -149,6 +163,7 @@ def test_openai_streaming():
     assert len(chunks) > 0
     assert len(full_text) > 0
     print(f"✅ Streaming test passed: {len(chunks)} chunks received")
+
 
 # Requires pytest-asyncio
 # @pytest.mark.skipif(not HAS_OPENAI, reason="OPENAI_API_KEY not set")

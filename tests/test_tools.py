@@ -1,8 +1,9 @@
 """
 Tests for Tool functionality and schema generation.
 """
-import pytest
+
 from pydantic import BaseModel, Field
+
 from aiclient.tools.base import Tool
 
 
@@ -31,6 +32,7 @@ def test_tool_from_function():
 
 def test_tool_schema_generation():
     """Test tool generates correct JSON schema for arguments."""
+
     def weather_tool(location: str, units: str = "celsius") -> str:
         """Get weather for a location."""
         return f"Weather in {location}"
@@ -47,6 +49,7 @@ def test_tool_schema_generation():
 
 def test_tool_execution():
     """Test tool can execute wrapped function."""
+
     def add_numbers(a: int, b: int) -> int:
         """Add two numbers."""
         return a + b
@@ -61,9 +64,7 @@ def test_tool_with_complex_types():
     """Test tool handles complex parameter types."""
 
     def process_data(
-        items: list[str],
-        metadata: dict[str, int],
-        enabled: bool = True
+        items: list[str], metadata: dict[str, int], enabled: bool = True
     ) -> str:
         """Process data with complex types."""
         return f"Processed {len(items)} items"
@@ -114,7 +115,7 @@ def test_tool_manual_creation():
         name="custom_search",
         description="Custom search tool",
         fn=search_fn,
-        schema=SearchArgs  # Note: parameter is 'schema' not 'args_schema'
+        schema=SearchArgs,  # Note: parameter is 'schema' not 'args_schema'
     )
 
     assert tool.name == "custom_search"

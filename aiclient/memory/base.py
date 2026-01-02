@@ -1,10 +1,13 @@
-from typing import List, Protocol, Dict, Any, Optional
+from typing import Any, Dict, List, Protocol
+
 from ..data_types import BaseMessage
+
 
 class Memory(Protocol):
     """
     Protocol for conversation memory systems.
     """
+
     def add_message(self, message: BaseMessage) -> None:
         """Add a message to memory."""
         ...

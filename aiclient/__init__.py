@@ -1,25 +1,41 @@
-from .client import Client
 from .agent import Agent
-from .tools.base import Tool
-from .providers.ollama import OllamaProvider
-from .data_types import (
-    UserMessage, SystemMessage, AssistantMessage, ToolMessage,
-    Text, Image, ModelResponse, StreamChunk, Usage
-)
-
-from .middleware import Middleware, CostTrackingMiddleware
-from .resilience import CircuitBreaker, RateLimiter, FallbackChain, LoadBalancer, RetryMiddleware
-from .observability import TracingMiddleware, OpenTelemetryMiddleware
-from .cache import SemanticCacheMiddleware
-from .memory import ConversationMemory, SlidingWindowMemory
 from .batch import BatchProcessor
-from .testing import MockProvider, MockTransport
-from .exceptions import (
-    AIClientError, AuthenticationError, RateLimitError,
-    ProviderError, InvalidRequestError, NetworkError
+from .cache import SemanticCacheMiddleware
+from .client import Client
+from .data_types import (
+    AssistantMessage,
+    Image,
+    ModelResponse,
+    StreamChunk,
+    SystemMessage,
+    Text,
+    ToolMessage,
+    Usage,
+    UserMessage,
 )
+from .exceptions import (
+    AIClientError,
+    AuthenticationError,
+    InvalidRequestError,
+    NetworkError,
+    ProviderError,
+    RateLimitError,
+)
+from .memory import ConversationMemory, SlidingWindowMemory
+from .middleware import CostTrackingMiddleware, LoggingMiddleware, Middleware
+from .observability import OpenTelemetryMiddleware, TracingMiddleware
+from .providers.ollama import OllamaProvider
+from .resilience import (
+    CircuitBreaker,
+    FallbackChain,
+    LoadBalancer,
+    RateLimiter,
+    RetryMiddleware,
+)
+from .testing import MockProvider, MockTransport
+from .tools.base import Tool
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "Client",
@@ -36,6 +52,7 @@ __all__ = [
     "Usage",
     "Middleware",
     "CostTrackingMiddleware",
+    "LoggingMiddleware",
     "CircuitBreaker",
     "RateLimiter",
     "RetryMiddleware",
@@ -55,4 +72,5 @@ __all__ = [
     "ProviderError",
     "InvalidRequestError",
     "NetworkError",
+    "OllamaProvider",
 ]
