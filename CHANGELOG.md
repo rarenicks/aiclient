@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.3.0] - 2026-01-02 ("The Feature Complete Release")
+## [1.0.0] - 2026-01-02 ("The Feature Complete Release")
 
 ### 🚀 New Features
 

@@ -35,7 +35,7 @@ from .resilience import (
 from .testing import MockProvider, MockTransport
 from .tools.base import Tool
 
-__version__ = "0.3.0"
+__version__ = "1.0.0"
 
 __all__ = [
     "Client",
