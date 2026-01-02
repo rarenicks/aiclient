@@ -1,12 +1,22 @@
-from typing import Callable, Type, Any, Dict
+from typing import Any, Callable, Dict, Type
+
 from pydantic import BaseModel
+
 
 class Tool:
     """
     A definition for a tool that can be used by an AI model.
     wraps a function and its Pydantic schema.
     """
-    def __init__(self, name: str, fn: Callable, schema: Type[BaseModel] = None, description: str = "", raw_schema: Dict[str, Any] = None):
+
+    def __init__(
+        self,
+        name: str,
+        fn: Callable,
+        schema: Type[BaseModel] = None,
+        description: str = "",
+        raw_schema: Dict[str, Any] = None,
+    ):
         self.name = name
         self.fn = fn
         self.args_schema = schema
@@ -22,39 +32,41 @@ class Tool:
                 "description": self.description,
                 "parameters": self.raw_schema,
             }
-        
+
         if self.args_schema:
             return {
                 "name": self.name,
                 "description": self.description,
                 "parameters": self.args_schema.model_json_schema(),
             }
-            
+
         return {
             "name": self.name,
             "description": self.description,
-            "parameters": {"type": "object", "properties": {}}
+            "parameters": {"type": "object", "properties": {}},
         }
 
     @classmethod
     def from_fn(cls, fn: Callable) -> "Tool":
         import inspect
-        from pydantic import create_model, Field
-        
+
+        from pydantic import create_model
+
         sig = inspect.signature(fn)
         params = {}
         for name, param in sig.parameters.items():
-            if name == "self": continue
+            if name == "self":
+                continue
             annotation = param.annotation
             if annotation == inspect.Parameter.empty:
                 annotation = str
-            
+
             default = param.default
             if default == inspect.Parameter.empty:
-                 params[name] = (annotation, ...)
+                params[name] = (annotation, ...)
             else:
-                 params[name] = (annotation, default)
-                 
+                params[name] = (annotation, default)
+
         schema = create_model(f"{fn.__name__}Schema", **params)
         return cls(name=fn.__name__, fn=fn, schema=schema)
 

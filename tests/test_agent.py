@@ -1,11 +1,12 @@
 """
 Tests for Agent functionality with tool use.
 """
-import pytest
+
 from unittest.mock import MagicMock
+
 from aiclient.agent import Agent
+from aiclient.data_types import ModelResponse, ToolCall
 from aiclient.models.chat import ChatModel
-from aiclient.data_types import ModelResponse, ToolCall, Usage
 from aiclient.tools.base import Tool
 
 
@@ -30,15 +31,13 @@ def test_agent_single_tool_call():
             text="I'll check the weather",
             raw={},
             tool_calls=[
-                ToolCall(id="call_1", name="get_weather", arguments={"location": "Tokyo"})
-            ]
+                ToolCall(
+                    id="call_1", name="get_weather", arguments={"location": "Tokyo"}
+                )
+            ],
         ),
         # Second response: Final answer
-        ModelResponse(
-            text="The weather in Tokyo is sunny!",
-            raw={},
-            tool_calls=None
-        )
+        ModelResponse(text="The weather in Tokyo is sunny!", raw={}, tool_calls=None),
     ]
 
     agent = Agent(model=mock_model, tools=[get_weather], max_steps=5)
@@ -58,20 +57,24 @@ def test_agent_multiple_tools():
         ModelResponse(
             text="Checking weather",
             raw={},
-            tool_calls=[ToolCall(id="call_1", name="get_weather", arguments={"location": "Paris"})]
+            tool_calls=[
+                ToolCall(
+                    id="call_1", name="get_weather", arguments={"location": "Paris"}
+                )
+            ],
         ),
         # Call time tool
         ModelResponse(
             text="Checking time",
             raw={},
-            tool_calls=[ToolCall(id="call_2", name="get_time", arguments={"timezone": "CET"})]
+            tool_calls=[
+                ToolCall(id="call_2", name="get_time", arguments={"timezone": "CET"})
+            ],
         ),
         # Final answer
         ModelResponse(
-            text="In Paris it's sunny and 12:00 PM CET",
-            raw={},
-            tool_calls=None
-        )
+            text="In Paris it's sunny and 12:00 PM CET", raw={}, tool_calls=None
+        ),
     ]
 
     agent = Agent(model=mock_model, tools=[get_weather, get_time], max_steps=10)
@@ -89,7 +92,9 @@ def test_agent_max_steps_reached():
     mock_model.generate_async.return_value = ModelResponse(
         text="Calling tool",
         raw={},
-        tool_calls=[ToolCall(id="call_1", name="get_weather", arguments={"location": "Test"})]
+        tool_calls=[
+            ToolCall(id="call_1", name="get_weather", arguments={"location": "Test"})
+        ],
     )
 
     agent = Agent(model=mock_model, tools=[get_weather], max_steps=3)
@@ -112,13 +117,11 @@ def test_agent_tool_error_handling():
         ModelResponse(
             text="Calling tool",
             raw={},
-            tool_calls=[ToolCall(id="call_1", name="failing_tool", arguments={"param": "test"})]
+            tool_calls=[
+                ToolCall(id="call_1", name="failing_tool", arguments={"param": "test"})
+            ],
         ),
-        ModelResponse(
-            text="I encountered an error",
-            raw={},
-            tool_calls=None
-        )
+        ModelResponse(text="I encountered an error", raw={}, tool_calls=None),
     ]
 
     agent = Agent(model=mock_model, tools=[Tool.from_fn(failing_tool)], max_steps=5)
@@ -135,9 +138,7 @@ def test_agent_no_tool_calls():
 
     # Direct answer without tools
     mock_model.generate_async.return_value = ModelResponse(
-        text="The answer is 42",
-        raw={},
-        tool_calls=None
+        text="The answer is 42", raw={}, tool_calls=None
     )
 
     agent = Agent(model=mock_model, tools=[get_weather], max_steps=5)
@@ -161,7 +162,11 @@ def test_agent_no_tool_calls():
 #         ModelResponse(
 #             text="Checking weather",
 #             raw={},
-#             tool_calls=[ToolCall(id="call_1", name="async_weather", arguments={"location": "NYC"})]
+#             tool_calls=[
+#                 ToolCall(
+#                     id="call_1", name="async_weather", arguments={"location": "NYC"}
+#                 )
+#             ]
 #         ),
 #         ModelResponse(
 #             text="Weather checked!",

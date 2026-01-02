@@ -4,29 +4,40 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aiclient-llm"
-version = "0.2.2"
+version = "1.0.0"
 description = "A minimal, generic client for AI models (OpenAI, Anthropic, Google, xAI) with middleware support."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
-keywords = ["ai", "llm", "client", "openai", "anthropic", "gemini"]
+keywords = ["ai", "llm", "client", "openai", "anthropic", "gemini", "grok", "ollama", "lmstudio"]
 authors = [
   {name = "Avdhesh Singh Chouhan", email = "ai.avdhesh@gmail.com"},
 ]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 4 - Beta",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
   "httpx>=0.25.0",
   "pydantic>=2.0",
+  "pydantic-settings>=2.0",
   "python-dotenv",
-  "mcp>=1.0.0",
   "numpy>=1.20.0",
+  "tiktoken>=0.5.0",
+]
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.0.0"]
+dev = [
+  "pytest",
+  "pytest-asyncio",
+  "ruff",
+  "mypy",
 ]
 
 [project.urls]
@@ -35,13 +46,6 @@ Documentation = "https://github.com/rarenicks/aiclient/tree/main/docs"
 Repository = "https://github.com/rarenicks/aiclient"
 Issues = "https://github.com/rarenicks/aiclient/issues"
 Changelog = "https://github.com/rarenicks/aiclient/blob/main/CHANGELOG.md"
-
-[project.optional-dependencies]
-dev = [
-  "pytest",
-  "ruff",
-  "mypy",
-]
 
 [tool.hatch.build.targets.wheel]
 packages = ["aiclient"]

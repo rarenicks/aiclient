@@ -2,17 +2,21 @@
 Testing utilities for aiclient applications.
 Use these tools to verify your code without making real API calls.
 """
-from typing import Any, Dict, List, Optional, Tuple, Union
+
 import contextlib
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+from .data_types import BaseMessage, ModelResponse, StreamChunk, Usage
 from .providers.base import Provider
 from .transport.base import Transport
-from .data_types import ModelResponse, BaseMessage, StreamChunk, Usage
+
 
 class MockTransport(Transport):
     """
     A transport that does nothing but return empty data.
     Used in conjunction with MockProvider which handles the response queue.
     """
+
     def send(self, endpoint: str, data: Dict[str, Any]) -> Dict[str, Any]:
         return {}
 
@@ -31,6 +35,7 @@ class MockProvider(Provider):
     A provider that returns pre-configured responses.
     Useful for unit testing your application logic.
     """
+
     def __init__(self, base_url: str = "mock://test"):
         self._base_url = base_url
         self._responses: List[Union[ModelResponse, Exception]] = []
@@ -47,29 +52,39 @@ class MockProvider(Provider):
 
     def add_response(self, text: str, raw: Dict[str, Any] = None):
         """Add a canned response to the queue."""
-        self._responses.append(ModelResponse(
-            text=text,
-            raw=raw or {},
-            usage=Usage(total_tokens=10),
-            provider="mock"
-        ))
+        self._responses.append(
+            ModelResponse(
+                text=text, raw=raw or {}, usage=Usage(total_tokens=10), provider="mock"
+            )
+        )
 
     def add_error(self, error: Exception):
         """Add an error to be raised during generation."""
         self._responses.append(error)
 
-    def prepare_request(self, model: str, messages: List[BaseMessage], tools: List[Any] = None, stream: bool = False, response_schema: Optional[Dict[str, Any]] = None, strict: bool = False) -> Tuple[str, Dict[str, Any]]:
+    def prepare_request(
+        self,
+        model: str,
+        messages: List[BaseMessage],
+        tools: List[Any] = None,
+        stream: bool = False,
+        response_schema: Optional[Dict[str, Any]] = None,
+        strict: bool = False,
+        **kwargs
+    ) -> Tuple[str, Dict[str, Any]]:
         """Log the request and return dummy data."""
         # Serialize messages to dicts for JSON safety
-        serialized_messages = [m.model_dump() if hasattr(m, "model_dump") else m for m in messages]
-        
+        serialized_messages = [
+            m.model_dump() if hasattr(m, "model_dump") else m for m in messages
+        ]
+
         request_data = {
             "model": model,
             "messages": serialized_messages,
             "tools": tools,
             "stream": stream,
             "response_schema": response_schema,
-            "strict": strict
+            "strict": strict,
         }
         self.requests.append(request_data)
         return self.base_url, request_data
@@ -79,12 +94,9 @@ class MockProvider(Provider):
         if not self._responses:
             # Default response if none queued
             return ModelResponse(
-                text="Mock Response",
-                raw={},
-                usage=Usage(),
-                provider="mock"
+                text="Mock Response", raw={}, usage=Usage(), provider="mock"
             )
-        
+
         item = self._responses.pop(0)
         if isinstance(item, Exception):
             raise item
@@ -93,6 +105,7 @@ class MockProvider(Provider):
     def parse_stream_chunk(self, chunk: Dict[str, Any]) -> Optional[StreamChunk]:
         """Parse stream chunk (not fully implemented for generic mock yet)."""
         return StreamChunk(text=chunk.get("text", ""), delta=chunk.get("text", ""))
+
 
 @contextlib.contextmanager
 def capture_on_error():

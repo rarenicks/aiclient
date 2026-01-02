@@ -2,19 +2,21 @@
 Integration tests for middleware functionality.
 Tests error hooks, cost tracking, and middleware chain.
 """
-import pytest
+
 from unittest.mock import MagicMock
-from aiclient import Client
-from aiclient.models.chat import ChatModel
+
+import pytest
+
+from aiclient.data_types import ModelResponse, Usage
 from aiclient.middleware import CostTrackingMiddleware
+from aiclient.models.chat import ChatModel
 from aiclient.resilience import CircuitBreaker, RateLimiter
-from aiclient.observability import TracingMiddleware
-from aiclient.data_types import ModelResponse, Usage, BaseMessage
 from aiclient.transport.base import Transport
 
 
 class ErrorTrackingMiddleware:
     """Test middleware to track errors."""
+
     def __init__(self):
         self.errors = []
 
@@ -30,6 +32,7 @@ class ErrorTrackingMiddleware:
 
 class MockFailingTransport(Transport):
     """Transport that fails N times then succeeds."""
+
     def __init__(self, fail_count=2):
         self.fail_count = fail_count
         self.call_count = 0
@@ -68,7 +71,7 @@ def test_middleware_error_hook_called_on_retry():
         transport,
         middlewares=[error_tracker],
         max_retries=3,
-        retry_delay=0.01
+        retry_delay=0.01,
     )
 
     response = model.generate("test")
@@ -86,13 +89,13 @@ def test_cost_tracking_middleware():
     response1 = ModelResponse(
         text="Hello",
         raw={},
-        usage=Usage(input_tokens=100, output_tokens=50, total_tokens=150)
+        usage=Usage(input_tokens=100, output_tokens=50, total_tokens=150),
     )
 
     response2 = ModelResponse(
         text="World",
         raw={},
-        usage=Usage(input_tokens=200, output_tokens=100, total_tokens=300)
+        usage=Usage(input_tokens=200, output_tokens=100, total_tokens=300),
     )
 
     # Process responses
@@ -139,11 +142,7 @@ def test_middleware_chain_order():
     provider.parse_response.return_value = ModelResponse(text="Test", raw={})
 
     model = ChatModel(
-        "test-model",
-        provider,
-        transport,
-        middlewares=[mw1, mw2],
-        max_retries=0
+        "test-model", provider, transport, middlewares=[mw1, mw2], max_retries=0
     )
 
     model.generate("test")
@@ -166,7 +165,7 @@ def test_circuit_breaker_middleware_integration():
         provider,
         transport,
         middlewares=[circuit_breaker],
-        max_retries=0  # Don't retry, fail immediately
+        max_retries=0,  # Don't retry, fail immediately
     )
 
     # First failure
@@ -200,11 +199,7 @@ def test_rate_limiter_middleware_integration():
     provider.parse_response.return_value = ModelResponse(text="OK", raw={})
 
     model = ChatModel(
-        "test-model",
-        provider,
-        transport,
-        middlewares=[rate_limiter],
-        max_retries=0
+        "test-model", provider, transport, middlewares=[rate_limiter], max_retries=0
     )
 
     # First two requests should be fast
@@ -231,7 +226,7 @@ def test_multiple_middleware_cooperation():
     provider.parse_response.return_value = ModelResponse(
         text="Success",
         raw={},
-        usage=Usage(input_tokens=10, output_tokens=5, total_tokens=15)
+        usage=Usage(input_tokens=10, output_tokens=5, total_tokens=15),
     )
 
     model = ChatModel(
@@ -240,7 +235,7 @@ def test_multiple_middleware_cooperation():
         transport,
         middlewares=[cost_tracker, error_tracker, circuit_breaker],
         max_retries=2,
-        retry_delay=0.01
+        retry_delay=0.01,
     )
 
     response = model.generate("test")

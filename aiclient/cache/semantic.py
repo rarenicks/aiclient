@@ -1,17 +1,19 @@
+from typing import Any, List, Optional, Protocol
+
 import numpy as np
-from typing import List, Optional, Any, Dict, Protocol
+
+from ..data_types import ModelResponse, UserMessage
 from ..middleware import Middleware
-from ..data_types import BaseMessage, ModelResponse, UserMessage
+
 
 class EmbeddingProvider(Protocol):
-    def embed(self, text: str) -> List[float]:
-        ...
+    def embed(self, text: str) -> List[float]: ...
+
 
 class VectorStore(Protocol):
-    def add(self, vector: List[float], value: Any):
-        ...
-    def search(self, vector: List[float], threshold: float) -> Optional[Any]:
-        ...
+    def add(self, vector: List[float], value: Any): ...
+    def search(self, vector: List[float], threshold: float) -> Optional[Any]: ...
+
 
 class InMemoryVectorStore:
     def __init__(self):
@@ -25,31 +27,32 @@ class InMemoryVectorStore:
     def search(self, vector: List[float], threshold: float) -> Optional[Any]:
         if not self.vectors:
             return None
-        
+
         query = np.array(vector)
         # Cosine similarity
         # Setup: norm(query) * norm(vec)
         q_norm = np.linalg.norm(query)
-        
+
         best_score = -1.0
         best_idx = -1
-        
+
         for i, vec in enumerate(self.vectors):
             score = np.dot(query, vec) / (q_norm * np.linalg.norm(vec))
             if score > best_score:
                 best_score = score
                 best_idx = i
-                
+
         if best_score >= threshold:
             return self.values[best_idx]
         return None
 
+
 class SemanticCacheMiddleware(Middleware):
     def __init__(
-        self, 
-        embedder: EmbeddingProvider, 
+        self,
+        embedder: EmbeddingProvider,
         threshold: float = 0.9,
-        backend: Optional[VectorStore] = None
+        backend: Optional[VectorStore] = None,
     ):
         self.embedder = embedder
         self.threshold = threshold
@@ -65,17 +68,17 @@ class SemanticCacheMiddleware(Middleware):
             # Find last user message
             for m in reversed(prompt):
                 if isinstance(m, UserMessage):
-                    text = str(m.content) # Simple string conversion
+                    text = str(m.content)  # Simple string conversion
                     break
-        
+
         if not text:
             return prompt
 
         self._last_prompt_str = text
-        
+
         # 2. Embed
         vector = self.embedder.embed(text)
-        
+
         # 3. Search
         cached_response = self.store.search(vector, self.threshold)
         if cached_response:
@@ -85,7 +88,7 @@ class SemanticCacheMiddleware(Middleware):
                 # Update usage to indicate cache hit?
                 # Maybe set a flag
                 return cached_response
-            
+
         return prompt
 
     def after_response(self, response: ModelResponse) -> ModelResponse:

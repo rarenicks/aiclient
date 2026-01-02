@@ -1,12 +1,14 @@
 import contextlib
-import asyncio
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
+
 from .client import MCPClient
+
 
 class MCPServerManager:
     """
     Manages the lifecycle of MCP servers.
     """
+
     def __init__(self):
         self._tool_server_map: Dict[str, str] = {}
         self._clients: Dict[str, MCPClient] = {}
@@ -16,12 +18,18 @@ class MCPServerManager:
     @property
     def is_active(self) -> bool:
         return self._is_active
-        
+
     @property
     def has_servers(self) -> bool:
         return bool(self._clients)
 
-    def add_server(self, name: str, command: str, args: List[str], env: Optional[Dict[str, str]] = None):
+    def add_server(
+        self,
+        name: str,
+        command: str,
+        args: List[str],
+        env: Optional[Dict[str, str]] = None,
+    ):
         """
         Register a server config. Does not connect yet.
         """
@@ -47,10 +55,9 @@ class MCPServerManager:
         self._is_active = False
         await self._exit_stack.aclose()
 
-
     async def get_client(self, name: str) -> MCPClient:
         return self._clients[name]
-        
+
     async def list_global_tools(self) -> List[Dict[str, Any]]:
         """
         Aggregate tools from all connected servers.
@@ -58,14 +65,14 @@ class MCPServerManager:
         all_tools = []
         # Clear map to rebuild
         self._tool_server_map.clear()
-        
+
         for name, client in self._clients.items():
             try:
                 tools = await client.list_tools()
                 for t in tools:
                     all_tools.append(t)
                     self._tool_server_map[t.name] = name
-            except Exception as e:
+            except Exception:
                 # Log error
                 pass
         return all_tools
@@ -76,18 +83,19 @@ class MCPServerManager:
             client = self._clients.get(server_name)
             if client:
                 return await client.call_tool(name, arguments)
-        
+
         # Fallback: Inefficient search (useful if map stale or not inited)
         # Or we can just raise error if we enforce list_tools called first.
         # Let's keep fallback for robustness in v0.3 dev.
         for client in self._clients.values():
             try:
-                tools = await client.list_tools() 
+                tools = await client.list_tools()
                 for tool in tools:
                     if tool.name == name:
                         # Found it! Update map for next time?
-                        # We don't know the server name inside this loop easily unless iterating items.
+                        # We don't know the server name inside this loop easily
+                        # unless iterating items.
                         return await client.call_tool(name, arguments)
-            except:
+            except Exception:
                 continue
         raise ValueError(f"Tool {name} not found on any server")
